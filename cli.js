@@ -159,7 +159,7 @@ if (!file) {
 
 			process.exit();
 		})
-		.catch(() => {
+		.catch(error => {
 			console.error(`
   ${chalk.red('Error: Sending code to https://carbon.now.sh went wrong.')}
 
@@ -167,7 +167,11 @@ if (!file) {
 
   – Insensical input like \`--start 10 --end 2\`
   – Carbon being down or taking too long to respond
-  – Your internet connection not working or being too slow`);
+  – Your internet connection not working or being too slow
+
+  Additional information:
+
+  ${error}`);
 
 			process.exit(1);
 		});

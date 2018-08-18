@@ -1,10 +1,10 @@
 // Packages
 const puppeteer = require('puppeteer');
 
-module.exports = async (url, location = process.cwd(), type = 'png') => {
+module.exports = async (url, location = process.cwd(), type = 'png', headless = false) => {
 	// Launch browser
 	const browser = await puppeteer.launch({
-		headless: false
+		headless
 	});
 	// Open new page
 	const page = await browser.newPage();
@@ -23,19 +23,26 @@ module.exports = async (url, location = process.cwd(), type = 'png') => {
 	// Let’s hope it remains a thing… 🤞
 	await page._client.send('Page.setDownloadBehavior', {
 		behavior: 'allow',
-		downloadPath: `${location}/`
+		downloadPath: `${location}`
 	});
 
 	// `page.waitForSelector` https://goo.gl/gGLKBL ➝ exactly what I needed 👍
 	const saveImageTrigger = await page.waitForSelector('[aria-labelledby="downshift-2-label"]');
 	// Only after this is clicked, the png and svg triggers will exist in the DOM
 	await saveImageTrigger.click();
-
-	const pngExportTrigger = await page.$('#downshift-2-item-0');
 	const svgExportTrigger = await page.$('#downshift-2-item-1');
 
+	await page.evaluate(() => {
+		const element = document.querySelector('#toolbar');
+		element.outerHTML = '';
+	});
+
+	const container = await page.$('.react-codemirror2');
+
 	if (type === 'png') {
-		await pngExportTrigger.click();
+		await container.screenshot({
+			path: `${location}/carbon.png`
+		});
 	} else if (type === 'svg') {
 		await svgExportTrigger.click();
 	} else {

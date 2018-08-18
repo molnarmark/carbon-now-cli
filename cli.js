@@ -47,6 +47,11 @@ const cli = meow(`
 			alias: 's',
 			default: 1
 		},
+		headless: {
+			type: 'boolean',
+			alias: 'h',
+			default: false
+		},
 		end: {
 			type: 'string',
 			alias: 'e',
@@ -75,7 +80,7 @@ const cli = meow(`
 	}
 });
 const [file] = cli.input;
-const {start, end, open, location, interactive, preset} = cli.flags;
+const {start, end, open, location, interactive, preset, headless} = cli.flags;
 let url = CARBON_URL;
 
 // Deny everything if not at least one argument (file) specified
@@ -161,7 +166,7 @@ if (!file) {
 				const	saveAs = `${location}/${original}-${generate('123456abcdef', 10)}.${type}`;
 
 				// Fetch image and rename it
-				await headlessVisit(url, location, type);
+				await headlessVisit(url, location, type, headless);
 				await asyncRename(downloaded, saveAs);
 
 				ctx.savedAs = saveAs;
@@ -187,13 +192,14 @@ if (!file) {
 				console.log(`
   The file can be found here: ${savedAs} 😌`
 				);
+				if (process.env.TERM_PROGRAM) {
+					if (process.env.TERM_PROGRAM.match('iTerm')) {
+						console.log(`
+	  iTerm2 should display the image below. 😊
 
-				if (process.env.TERM_PROGRAM.match('iTerm')) {
-					console.log(`
-  iTerm2 should display the image below. 😊
-
-		${await terminalImage.file(savedAs)}`
-					);
+			${await terminalImage.file(savedAs)}`
+						);
+					}
 				}
 			}
 
